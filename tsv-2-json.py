@@ -1,6 +1,6 @@
 import json
 
-def convertJson(fileName, listAttributes):
+def convertJson(fileName, listAttributes, intAttributes):
     print("Beginning conversion for file: {}.tsv".format(fileName))
     # For some reason, I run into an issue on Niall Byrne in name.basics.tsv (with char 0x81) if I don't use an encoding
     inFile = open(fileName + ".tsv", 'r', encoding='utf-8')
@@ -11,6 +11,12 @@ def convertJson(fileName, listAttributes):
     while anotherLine:
         entry = {}
         for title, data in zip(titles, anotherLine.strip().split('\t')):
+            if title in intAttributes and (data != '\\N'):
+                # Values are floats
+                data = int(data)
+            elif title == 'averageRating':
+                # Values are floats
+                data = float(data)
             if title in listAttributes:
                 # List attribute
                 entry[title] = data.split(',')
@@ -28,17 +34,18 @@ def convertJson(fileName, listAttributes):
 
         allEntries.append(entry)
         anotherLine = inFile.readline()
-    outFile = open(fileName + '.json', 'w', encoding = 'utf-8')
+    outFile = open(fileName + '.json', 'w')
     outFile.write(json.dumps(allEntries, indent = 2)) # Having an indent keeps the file from just being one long line
-    print("Wrote to the output file: {}.txt".format(fileName))
+    print("Wrote to the output file: {}.json".format(fileName))
 
 
 
 def main():
     listAttributes = {'primaryProfession','knownForTitles','genres'} # Characters are stored differently for some reason
+    intAttributes = {'birthYear','deathYear','isAdult','startYear','runtimeMinutes','ordering','numVotes','avgRating'}
     listOfFiles = ['name.basics', 'title.basics','title.principals','title.ratings']
     for file in listOfFiles:
-        convertJson(file, listAttributes)
+        convertJson(file, listAttributes, intAttributes)
     print("Done")
 
 if __name__=='__main__':

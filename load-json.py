@@ -3,7 +3,7 @@ import pymongo, json
 def main():
     validResponse = False
     while not validResponse:
-        portNum = input("Which port would you like to use (empty response is the default port 27017)? ")
+        portNum = input("Which port would you like to use (empty response is the default port: 27017)? ")
         if portNum =='':
             portNum = 27017
         elif portNum.isdigit():
@@ -24,6 +24,7 @@ def main():
     # Create or open the database on server
     db = client['291']
     collections = ["name_basics", "title_basics", "title_principals", "title_ratings"]
+    collections = ['title_basics']
     for collection in collections:
         if collection in db.list_collection_names():
             # Drop the collection if it exists
@@ -33,11 +34,14 @@ def main():
         # Create the collection
         print("Building collection:", collection)
         newCollection = db[collection]
-        with open(collection.replace('_', '.')+'.json') as file:
+        with open(collection.replace('_', '.')+'.json', encoding = 'utf-8') as file:
             # See note on March 21
             collection_data = json.load(file)
-        newCollection.insert_many(collection_data)
+            print(collection_data[0])
+            newCollection.insert_many(collection_data)
     print("Done")
 
 if __name__=='__main__':
     main()
+
+
