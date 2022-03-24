@@ -3,7 +3,7 @@ import pymongo, json
 def main():
     validResponse = False
     while not validResponse:
-        portNum = input("Which port would you like to use (empty response is the default port)? ")
+        portNum = input("Which port would you like to use (empty response is the default port 27017)? ")
         if portNum =='':
             portNum = 27017
         elif portNum.isdigit():
