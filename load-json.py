@@ -24,7 +24,6 @@ def main():
     # Create or open the database on server
     db = client['291']
     collections = ["name_basics", "title_basics", "title_principals", "title_ratings"]
-    collections = ['title_basics']
     for collection in collections:
         if collection in db.list_collection_names():
             # Drop the collection if it exists
@@ -37,7 +36,6 @@ def main():
         with open(collection.replace('_', '.')+'.json', encoding = 'utf-8') as file:
             # See note on March 21
             collection_data = json.load(file)
-            print(collection_data[0])
             newCollection.insert_many(collection_data)
     print("Done")
 
