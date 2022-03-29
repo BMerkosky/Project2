@@ -193,10 +193,8 @@ def searchPeople():
     # print()
     name = "Michael Jordan"  # for testing
 
-    # TIMING QUERY
-    start_time = time.time()
-
-    # TODO: if someone has multiple movies, group so that the name and professions are only printed once
+    # # TIMING QUERY
+    # start_time = time.time()
 
     res = db.name_basics.aggregate( [ 
         { "$match": { "primaryName": re.compile(name, re.IGNORECASE) } },
@@ -208,7 +206,6 @@ def searchPeople():
                 "as": "movies" 
             },
         },
-        { "$unwind": "$movies" },
         {
             "$lookup": {
                 "from": "title_basics",
@@ -222,8 +219,7 @@ def searchPeople():
                     } ],
                 "as": "ptitle"
             }
-        },
-        { "$unwind": "$ptitle" },
+        },        
     ] )
     
     for r in res:
@@ -232,19 +228,22 @@ def searchPeople():
         print("Professions:", ', '.join(r["primaryProfession"]))
         
         # print movie and jobs/characters if they had an appearance in the movie
-        if r["movies"]["job"] != '\\N' or ''.join(r["movies"]["characters"]) != '\\N':
-            print(r["ptitle"]["primaryTitle"])
-            if r["movies"]["job"] != '\\N':
-                print("Job:", r["movies"]["job"])
-            elif ''.join(r["movies"]["characters"]) != '\\N':
-                print("Characters:", ', '.join(r["movies"]["characters"]))
-        else:
-            print("No movie appearances")
-        print()
-        # print(r)
-        # print()
+        for i in range(len(r["movies"])):
+            if r["movies"][i]["job"] != '\\N' or ''.join(r["movies"][i]["characters"]) != '\\N':
+                print(r["ptitle"][i]["primaryTitle"])
+                if r["movies"][i]["job"] != '\\N':
+                    print("- Job:", r["movies"][i]["job"])
+                elif ''.join(r["movies"][i]["characters"]) != '\\N':
+                    print("- Characters:", ', '.join(r["movies"][i]["characters"]))
+            # print()
+            # else:
+            #     print("No movie appearances")
+            # print()
+            # print(r)
+            # print()
+        print("="*30)
     
-    print("--- %s seconds ---" % (time.time() - start_time))
+    # print("--- %s seconds ---" % (time.time() - start_time))
 
 
 def searchGenres():
