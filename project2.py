@@ -1,29 +1,99 @@
 import pymongo
 import re
 import time
-# start_time = time.time()
+#TODO: Do we want to add arguments to all of our functions?
+def main():
+    db = connect()
+    # Now we create the collections
+    nameBasics = db["name_basics"]
+    titleBasics = db["title_basics"]
+    titlePrincipals = db["title_principals"]
+    titleRatings = db["title_ratings"]
+    # Main menu
+    exitFlag = False
+    while True:
+        if exitFlag:
+            exitProgram()
+            break
 
+        printMenu()
+        validOptions = ['1','2','3', '4', '5', '6']
 
-# Use client = MongoClient('mongodb://localhost:27017') for specific ports!
-# Connect to the default port on localhost for the mongodb server.
-client = pymongo.MongoClient()
-#TODO: Do we have to prompt the user for a specific port again?
+        option = input("Choose an option: ")
+        
+        if option not in validOptions:
+            validInput = False
+        else:
+            validInput = True
 
+        while not validInput:
+            option = input("Invalid input. Choose an option: ")
+            if option in validOptions:
+                validInput = True
+        
+        if option == '1':
+            title_search(nameBasics, titleBasics, titleRatings)
+        elif option == '2':
+            searchGenres(titleBasics)
+        elif option == '3':
+            searchPeople(nameBasics)
+        elif option == '4':
+            addMovie(titleBasics)
+        elif option == '5':
+            addMoviePeople(nameBasics, titleBasics, titlePrincipals)
+        else:
+            exitFlag = True
 
-# Create or open the video_store database on server.
-db = client["291"]
+def printMenu():
+    print('='*26)
+    print("CMPUT 291 - Mini Project 2")
+    print('='*26)
+    print("1 - Search for titles")
+    print("2 - Search for genres")
+    print("3 - Search for cast/crew members")
+    print("4 - Add a movie")
+    print("5 - Add a cast/crew member")
+    print("6 - Exit")
+    print('='*26)
 
-# Now we create the collections
-nameBasics = db["name_basics"]
-titleBasics = db["title_basics"]
-titlePrincipals = db["title_principals"]
-titleRatings = db["title_ratings"]
+def exitProgram():
+    print("Exiting program...")
+    time.sleep(1)
+    print("Goodbye")
 
-# Now we can run our code here. TODO: Create a main function etc.
-def title_search():
+def connect():
+    # Connect to the mongo database
+    # Returns the database object
+    validResponse = False
+    while not validResponse:
+        portNum = input("Which port would you like to use (empty response is the default port: 27017)? ")
+        if portNum =='':
+            portNum = 27017
+        elif portNum.isdigit():
+            portNum = int(portNum)
+        else:
+            print("Invalid port number")
+            continue
+        print("Connecting...")
+        client = pymongo.MongoClient(port = portNum)
+        try:
+            # Check if this is a valid client
+            client.admin.command('ping')
+            validResponse = True
+        except pymongo.errors.ConnectionFailure:
+            # Invalid client
+            print("Server not available")
+    print("Connection successful")
+
+    # Create or open the database on server
+    db = client['291']
+    return db
+
+def title_search(nameBasics, titleBasics, titleRatings):
     # Created a Text Index on title_basics as:
     # db.title_basics.createIndex({"primaryTitle": "text", "startYear": "text"})
     # this searches for all KEYWORDS related to input!
+    # TODO: Do we need to keep this index?
     validAnswer = False
     while not validAnswer:
 
@@ -102,8 +172,8 @@ def title_search():
         elif user_menu == '4':
             validAnswer = True
 
-def addMovie():
-
+def addMovie(titleBasics):
+    #TODO: Error checking for this one
     validAnswer = False
     while not validAnswer:
         # need unique tconst, checking if user input tconst already exists in titleBasics
@@ -141,8 +211,7 @@ def addMovie():
 
     print("Movie added.")
 
-
-def addMoviePeople(titleBasics, nameBasics, titlePrincipals):
+def addMoviePeople(nameBasics, titleBasics, titlePrincipals):
     # Adds a cast/crew member to the title_principals collection
     validAnswer = False
     while not validAnswer:
@@ -187,7 +256,7 @@ def addMoviePeople(titleBasics, nameBasics, titlePrincipals):
 
     print("Cast/crew member added")
 
-def searchPeople():
+def searchPeople(nameBasics):
 
     # name = input("Provide a cast or crew member: ")
     # print()
@@ -196,7 +265,7 @@ def searchPeople():
     # # TIMING QUERY
     # start_time = time.time()
 
-    res = db.name_basics.aggregate( [ 
+    res = nameBasics.aggregate( [ 
         { "$match": { "primaryName": re.compile(name, re.IGNORECASE) } },
         {
             "$lookup": {
@@ -243,10 +312,7 @@ def searchPeople():
             # print()
         print("="*30)
     
-    # print("--- %s seconds ---" % (time.time() - start_time))
-
-
-def searchGenres():
+def searchGenres(titleBasics):
     # genre = input("Search for genre: ")
     # vcnt = input("Mininum vote count: ")
 
@@ -265,7 +331,7 @@ def searchGenres():
     # res.sort("numVotes", -1)
 
 
-    res = db.title_basics.aggregate( [
+    res = titleBasics.aggregate( [
         { "$match": { "genres": re.compile(genre, re.IGNORECASE) } },
         # { "$match": { "$text": { "$search": genre } } },
         {
@@ -286,7 +352,6 @@ def searchGenres():
     for r in res:
         print(r["primaryTitle"])
 
-print()
-# searchGenres()
-searchPeople()
+if __name__=='__main__':
+    main()
 
