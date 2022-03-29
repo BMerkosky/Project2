@@ -38,10 +38,8 @@ def main():
             # See note on March 21
             collection_data = json.load(file)
             newCollection.insert_many(collection_data)
-    
-    # # create index NOTE: maybe make more if necessary (to speed up search functions) 
-    # db.title_basics.create_index([("genres", pymongo.ASCENDING), ("tconst", pymongo.ASCENDING)])
-    # db.title_ratings.create_index([("numVotes", pymongo.DESCENDING), ("tconst", pymongo.ASCENDING)])
+    # Create indices:
+    db.title_ratings.create_index("tconst", unique = True)
     
     print("Done")
 
