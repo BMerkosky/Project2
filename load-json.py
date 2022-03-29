@@ -21,6 +21,7 @@ def main():
             # Invalid client
             print("Server not available")
     print("Connection successful")
+
     # Create or open the database on server
     db = client['291']
     collections = ["name_basics", "title_basics", "title_principals", "title_ratings"]
@@ -37,6 +38,11 @@ def main():
             # See note on March 21
             collection_data = json.load(file)
             newCollection.insert_many(collection_data)
+    
+    # # create index NOTE: maybe make more if necessary (to speed up search functions) 
+    # db.title_basics.create_index([("genres", pymongo.ASCENDING), ("tconst", pymongo.ASCENDING)])
+    # db.title_ratings.create_index([("numVotes", pymongo.DESCENDING), ("tconst", pymongo.ASCENDING)])
+    
     print("Done")
 
 if __name__=='__main__':

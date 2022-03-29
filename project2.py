@@ -1,5 +1,8 @@
 import pymongo
 import re
+import time
+start_time = time.time()
+
 
 # Use client = MongoClient('mongodb://localhost:27017') for specific ports!
 # Connect to the default port on localhost for the mongodb server.
@@ -97,8 +100,6 @@ def searchPeople():
                     "a": "$nconst",
                     "b": "$movies.tconst"
                 },
-                # "localField": "nconst",
-                # "foreignField": "nconst",
                 "pipeline": [
                     { "$match": { "$expr": { "$and": [
                         { "$eq": [ "$nconst", "$$a" ] },
@@ -140,80 +141,47 @@ def searchPeople():
         print(r)
         print()
 
-    # # make our own dict so we can print it out easy later :) jk this is shit lol
-    # pdict = defaultdict(list)
-    # mdict = defaultdict(list)
+def searchGenres():
+    # genre = input("Search for genre: ")
+    # vcnt = input("Mininum vote count: ")
 
-    # # tconst and nconst are unique
-    # # professions is top 3
+    # for easy testing
+    genre = "Drama"
+    vcnt = 200000
 
-    # findName = db.name_basics.find( {"primaryName": name} )
+    # NOTE: this isn't "instant" like in the rubric :(
+    # but idk how to make it even faster
     
-    # for r in findName:
-    #     nconst = r["nconst"]
-    #     pdict[nconst].append(r["primaryProfession"])
-    #     pdict[nconst].append(r["knownForTitles"])
+    db.title_basics.create_index([("genres", pymongo.TEXT)])
 
-    #     # format: nconst: [professions], [titles]
+    res = db.title_basics.find( { "$text": { "$search": genre } } ).limit(3)
 
-    # for v in pdict.values():
-    #     for t in v[1]:
-    #         findTitle = db.title_basics.find( {"tconst": t} )
-    #         for title in findTitle:
-    #             print(title)
-    #         # print(t)
-    #     # print(v[1])  # get the titles
-
-    # # get primary title
+    db.title_ratings.create_index("numVotes", pymongo.DESCENDING)
+    # res.sort("numVotes", -1)
 
 
+    # res = db.title_basics.aggregate( [
+    #     # { "$match": { "genres": re.compile(genre, re.IGNORECASE) } },
+    #     { "$match": { "$text": { "$search": genre } } },
+    #     {
+    #         "$lookup": {
+    #             "from": "title_ratings",
+    #             "localField": "tconst",
+    #             "foreignField": "tconst",
+    #             "as": "votes"
+    #         } 
+    #     },
+    #     { "$unwind": "$votes" },
+    #     { "$sort": { "votes.numVotes": -1 } },
+    #     { "$match": { "votes.numVotes": { "$gte": vcnt } } },
+    #     # { "$sort": { "votes.numVotes": -1 } },
+    #     { "$limit": 20 }  # TODO: get rid of this later
+    # ] )
 
-    # # format of nested dictionary at the end:
-    # # nconst: [professions], [titles: [primary title], [jobs], [chars]]
-    
-    # print(pdict)
-    # # {'nm0003044': [['actor', 'producer', 'soundtrack'], ['tt0124718', 'tt0117705']], 
-    # # 'nm0430106': [['actress'], ['tt0204388']], 
-    # # 'nm1243542': [['editor'], ['tt0274509']]}
-    
-    # # for t in tconst:
-    # #     findMovies = db.title_basics.find( {"tconst": t} )
-    # #     findJobs = db.title_principals.find( {"tconst": t, "nconst": nconst} )
-    # #     for m in findMovies:
-    # #         ptitle = m["primaryTitle"]
-    # #         mdict[t].append(ptitle)
-    # #     # print(ptitle)
-    # # #         mdict[t] = ptitle
-    # # #         # mlist.append(ptitle)
-    # #     for j in findJobs:
-    # #         job = j["job"]
-    # #         mdict[t].append(job)
-    # # #     # print("wow",mdict[t])
-    # # # # print(mdict)
+    for r in res:
+        print(r["primaryTitle"])
 
-    # # # for t in tconst:
-    # # #     findJobs = db.title_principals.find( {"tconst": t, "nconst": nconst} )
-    # # #     for j in findJobs:
-    # # #         job = j["job"]
-    # # #         characters = j["characters"]
-    # # #         print(characters)
-    # # #         for x in characters:
-    # # #             print("mdict:",mdict[t])
+searchGenres()
+# searchPeople()
 
-    # # #     # findJobs = db.title_principals.find( {"tconst": t, "nconst": nconst} )
-    # # #     # for r in findMovies:
-    # # #     #     ptitle = r["primaryTitle"]
-    # # #     #     print('-',ptitle, end='')
-    # # #     # for j in findJobs:
-    # # #     #     job = j["job"]
-    # # #     #     print(':',job)
-
-    # # # jobs and characters
-    # # print(mdict)
-
-
-    # # # and for each tconst, take the tconst and nconst together to find job and characters in title_principals
-
-    # # print(nconst, professions, tconst)
-print('='*100)
-searchPeople()
+print("--- %s seconds ---" % (time.time() - start_time))
