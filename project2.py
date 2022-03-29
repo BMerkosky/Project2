@@ -1,7 +1,7 @@
 import pymongo
 import re
 import time
-start_time = time.time()
+# start_time = time.time()
 
 
 # Use client = MongoClient('mongodb://localhost:27017') for specific ports!
@@ -188,8 +188,13 @@ def addMoviePeople(titleBasics, nameBasics, titlePrincipals):
     print("Cast/crew member added")
 
 def searchPeople():
+
     # name = input("Provide a cast or crew member: ")
+    # print()
     name = "Michael Jordan"  # for testing
+
+    # TIMING QUERY
+    start_time = time.time()
 
     # TODO: if someone has multiple movies, group so that the name and professions are only printed once
 
@@ -225,9 +230,10 @@ def searchPeople():
         print(r["primaryName"], end=' ')
         print('('+r["nconst"]+')')
         print("Professions:", ', '.join(r["primaryProfession"]))
-        print(r["ptitle"]["primaryTitle"])
-
+        
+        # print movie and jobs/characters if they had an appearance in the movie
         if r["movies"]["job"] != '\\N' or ''.join(r["movies"]["characters"]) != '\\N':
+            print(r["ptitle"]["primaryTitle"])
             if r["movies"]["job"] != '\\N':
                 print("Job:", r["movies"]["job"])
             elif ''.join(r["movies"]["characters"]) != '\\N':
@@ -237,6 +243,9 @@ def searchPeople():
         print()
         # print(r)
         # print()
+    
+    print("--- %s seconds ---" % (time.time() - start_time))
+
 
 def searchGenres():
     # genre = input("Search for genre: ")
@@ -278,7 +287,7 @@ def searchGenres():
     for r in res:
         print(r["primaryTitle"])
 
+print()
 # searchGenres()
 searchPeople()
 
-print("--- %s seconds ---" % (time.time() - start_time))
