@@ -309,7 +309,7 @@ def searchPeople(nameBasics):
 
 def searchGenres(titleBasics):
     genre = input("Search for genre: ")
-    vcnt = int(input("Mininum vote count: "))
+    vcnt = int(input("Minimum vote count: "))
 
     # check if the genre exists
     count = titleBasics.count_documents( { 
@@ -335,15 +335,15 @@ def searchGenres(titleBasics):
         },
         { "$unwind": "$votes" },
         { "$match": { "votes.numVotes": { "$gte": vcnt } } },
-        { "$sort": { "votes.numVotes": -1 } }
+        { "$sort": { "votes.averageRating": -1 } }
     ] )
 
     # printing output
-    print('-'*50)
-    print("{m:40} | Votes".format(m="Movies"))
-    print('-'*50)
+    print('-'*60)
+    print("{m:50} | Rating".format(m="Movies"))
+    print('-'*60)
     for r in res:        
-        print("{m:40} | {v}".format(m=r["primaryTitle"], v=r["votes"]["numVotes"]))
+        print("{m:50} | {v}".format(m=r["primaryTitle"], v=r["votes"]["averageRating"]))
 
 if __name__=='__main__':
     main()
