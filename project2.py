@@ -32,7 +32,7 @@ def main():
                 validInput = True
         
         if option == '1':
-            title_search(nameBasics, titleBasics, titleRatings)
+            titleSearch(nameBasics, titleBasics, titlePrincipals, titleRatings)
         elif option == '2':
             searchGenres(titleBasics)
         elif option == '3':
@@ -89,7 +89,7 @@ def connect():
     db = client['291db']
     return db
 
-def title_search(nameBasics, titleBasics, titleRatings):
+def titleSearch(nameBasics, titleBasics, titlePrincipals, titleRatings):
     # Created a Text Index on title_basics as:
     # db.title_basics.createIndex({"primaryTitle": "text", "startYear": "text"})
     # this searches for all KEYWORDS related to input!
@@ -106,123 +106,62 @@ def title_search(nameBasics, titleBasics, titleRatings):
         else:
             print("Sorry, could not find movies with that keyword. Try Again.")
 
-        # print keyword searches 
-        for documents in cursor:
-            print(documents)
-        print("\n")
-
+    # print keyword searches 
+    i = 1
+    ids = []
+    for documents in cursor:
+        ids.append(documents["tconst"])
+        print(i, end = '|')
+        for item in documents:
+            print("{}: ".format(item) + str(documents[item]), end = ', ')
+        i += 1
+        print('')
+    print("0| Exit to menu")
     validAnswer = False
     while not validAnswer:
-        input2 = input("Enter a title to see rating, number of votes and names of cast/crew:  ")
-        # count2: check to see if there is any movies with that name
-        count2 = titleBasics.count_documents({"primaryTitle": { "$regex": input2, "$options": "i"}}) 
-        # case insensitive user_title
-        user_title = titleBasics.find({"primaryTitle": { "$regex": input2, "$options": "i"}}) 
-        if count2 > 0:
+        choice = input(("Select an to view the information of its corresponding movie: "))
+        if choice == '0': return
+        elif choice.isdigit() and int(choice) <= i:
+            choice = int(choice)
             validAnswer = True
         else:
-            print("Sorry, no titles found. Try again.")
-        user_titles_list = []
-        tconst1 = []
+            print("Sorry, invalid answer. Please try again")
 
-        for i in user_title:
-            tconst1.append(i['tconst'])
-            user_titles_list.append(i)
+    id = ids[choice - 1]
 
-    #print(user_titles_list)
-    #print(tconst1[0])
-
-
-    validAnswer = False
-    while not validAnswer:
-        user_menu = input("Enter 1 to see rating, Enter 2 to see votes, Enter 3 to see cast/crew members, Enter 4 to end: ")
-        if user_menu == '1':
-            ratings_list = []
-            # if more than 1 movie, takes first movie index.
-            ratings = titleRatings.find({"tconst": tconst1[0]})
-            for i in ratings:
-                ratings_list.append(i["averageRating"])
-            for i in ratings_list:
-                print("Average rating is: ",ratings_list)
-
-        elif user_menu == '2':
-            votes_list = []
-            votes = titleRatings.find({"tconst": tconst1[0]})
-            for i in votes:
-                votes_list.append(i["numVotes"])
-            print("Number of votes is: ",votes_list)
-            
-        elif user_menu == '3':
-
-            if nameBasics.find({'knownForTitles': tconst1[0]}): 
-                crew = nameBasics.find({'knownForTitles': tconst1[0]}, {'primaryName':1})
-                chars = []
-                knownfor = nameBasics.find({"knownForTitles": tconst1[0] })
-                if knownfor:
-                    for i in knownfor:
-                        chars.append(i["nconst"])
-                name = []
-                for i in crew:
-                    name.append(i["primaryName"])
-
-                print(name)
-                print("Name of cast/crew members: ", ', '.join(name))
-                #print(chars)
-
-        elif user_menu == '4':
-            validAnswer = True
-
-def addMovie(titleBasics):
-    validAnswer = False
-    while not validAnswer:
-        # need unique tconst, checking if user input tconst already exists in titleBasics
-        tconst = input("Provide ID of movie to add: ")
-        result = titleBasics.count_documents({"tconst": tconst})
-        if result == 0:
-            validAnswer = True
-        else:
-            print("Sorry, that tconst value already exists. Enter a unique value: ")
-
-
-    title = input("Provide a movie title to add: ")
-
-    start_year = input("Enter movie start year: ")
-
-    try:
-        mov_time = int(input("Enter movie runtime in minutes: "))
-    except:
-        print("Aborting... runtime must be an integer")
-        return
-
-    genre_list = []
-
-    genre = input("Enter movie genre(s): ")
-    genre_list.append(genre)
-
-
-    titleBasics.insert_one(
-        {"tconst": tconst,
-        "titleType": "movie",
-        "primaryTitle": title,
-        "originalTitle": title,
-        "isAdult": "\\N",
-        "startYear": start_year,
-        "endYear": "\\N",
-        "runtimeMinutes": mov_time,
-        "genres": genre_list,
-        })
-
-    print("Movie added.")
-
-    # # NOTE: get rid of this (just for testing)
-    # res = titleBasics.aggregate([
-    #     {"$match": { 
-    #         "primaryTitle": "new test"
-    #         }}
-    #     ])
-
-    # for r in res:
-    #     print(r)
+    # Print the information for the movie
+    res = titleRatings.aggregate( [ { "$match": { "tconst": id } },
+        {
+            "$lookup": {
+                "from": "title_principals",
+                "localField": "tconst", 
+                "foreignField": "tconst", 
+                "pipeline" : [{"$sort": {"nconst" : pymongo.DESCENDING}}],
+                "as": "principalsRow" 
+            },
+        },
+        {
+            "$lookup": {
+                "from": "name_basics",
+                "localField": "principalsRow.nconst",
+                "foreignField": "nconst",
+                "pipeline" : [{"$sort": {"nconst" : pymongo.DESCENDING}}],
+                "as": "namesRow"
+            }
+        }    
+    ] )
+    for r in res:
+        # There should only be one row
+        print("Average rating:", r["averageRating"])
+        print("Number of votes:", r["numVotes"])
+        for member in range(len(r["principalsRow"])):
+            # We should also be able to use r["namesRow"] if we wanted
+            print("Name: ", r["namesRow"][member]["primaryName"])
+            for character in r["principalsRow"][member]["characters"]:
+                if character == "\\N":
+                    print("- No characters found")
+                else:
+                    print("- Character:", character)
 
 def addMoviePeople(nameBasics, titleBasics, titlePrincipals):
     # Adds a cast/crew member to the title_principals collection
