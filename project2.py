@@ -97,7 +97,7 @@ def titleSearch(nameBasics, titleBasics, titlePrincipals, titleRatings):
     validAnswer = False
     while not validAnswer:
 
-        keyword = input("Enter one or more keywords to search for, separated by a space: ").lower()
+        keyword = input("\nEnter one or more keywords to search for, separated by a space: ").lower()
         count = titleBasics.count_documents({ "$text": { "$search": keyword }}) # count to see if something exists
 
         cursor = titleBasics.find( { "$text": { "$search": keyword}})
@@ -110,13 +110,16 @@ def titleSearch(nameBasics, titleBasics, titlePrincipals, titleRatings):
     i = 1
     ids = []
     for documents in cursor:
+        
         ids.append(documents["tconst"])
         print(i, end = '|')
         for item in documents:
+
             print("{}: ".format(item) + str(documents[item]), end = ', ')
         i += 1
-        print('')
-    print("0| Exit to menu")
+        print("")
+
+    print("\n0| Exit to menu")
     validAnswer = False
     while not validAnswer:
         choice = input(("Select an to view the information of its corresponding movie: "))
@@ -162,6 +165,45 @@ def titleSearch(nameBasics, titleBasics, titlePrincipals, titleRatings):
                     print("- No characters found")
                 else:
                     print("- Character:", character)
+
+def addMovie(titleBasics):
+
+    validAnswer = False
+    while not validAnswer:
+        # need unique tconst, checking if user input tconst already exists in titleBasics
+        tconst = input("Provide ID of movie to add: ")
+        result = titleBasics.count_documents({"tconst": tconst})
+        if result == 0:
+            validAnswer = True
+        else:
+            print("Sorry, that tconst value already exists. Enter a unique value: ")
+
+
+    title = input("Provide a movie title to add: ")
+    
+    start_year = input("Enter movie start year: ")
+
+    mov_time = input("Enter movie runtime in minutes: ")
+
+    genre_list = []
+
+    genre = input("Enter movie genre(s): ")
+    genre_list.append(genre)
+
+
+    titleBasics.insert_one(
+        {"tconst": tconst,
+        "titleType": "movie",
+        "primaryTitle": title,
+        "originalTitle": title,
+        "isAdult": "\\N",
+        "startYear": start_year,
+        "endYear": "\\N",
+        "runtimeMinutes": mov_time,
+        "genres": genre_list,
+        })
+
+    print("Movie added.")
 
 def addMoviePeople(nameBasics, titleBasics, titlePrincipals):
     # Adds a cast/crew member to the title_principals collection
