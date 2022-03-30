@@ -181,18 +181,35 @@ def addMovie(titleBasics):
 
     title = input("Provide a movie title to add: ")
     
-    start_year = input("Enter movie start year: ")
+    validAnswer = False
+    while not validAnswer:
+        start_year = input("Enter movie start year: ")
+        if start_year.isdigit() and int(start_year) >= 0:
+            start_year = int(start_year)
+            validAnswer = True
+        else:
+            print("Sorry, it appears you have not entered a valid year. Please try again")
     
-    try:
-        mov_time = int(input("Enter movie runtime in minutes: "))
-    except:
-        print("Aborting... runtime must be an integer")
-        return
+    validAnswer = False
+    while not validAnswer:
+        mov_time = input("Enter movie runtime in minutes: ")
+        if mov_time.isdigit() and int(mov_time) >= 0:
+            mov_time = int(mov_time)
+            validAnswer = True
+        else:
+            print("Sorry, it appears you have not entered a valid integer runtime. Please try again")
 
     genre_list = []
-
-    genre = input("Enter movie genre(s): ")
-    genre_list.append(genre)
+    moreGenres = True
+    while moreGenres:
+        genre = input("Enter one of the movie genres, or empty response to stop adding genres: ")
+        if genre == "":
+            moreGenres = False
+        else:
+            genre_list.append(genre)
+    if len(genre_list) == 0:
+        # No genres given
+        genre_list.append("\\N")
 
 
     titleBasics.insert_one(
