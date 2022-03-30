@@ -8,3 +8,4 @@ Information on tsv to json conversion in python was found here: https://www.geek
 
 https://stackoverflow.com/questions/37086387/multiple-join-conditions-using-the-lookup-operator
 https://www.mongodb.com/docs/v5.0/reference/operator/aggregation/lookup/
+https://kb.objectrocket.com/mongo-db/how-to-query-mongodb-documents-with-regex-in-python-362
