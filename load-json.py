@@ -38,8 +38,10 @@ def main():
             # See note on March 21
             collection_data = json.load(file)
             newCollection.insert_many(collection_data)
+            
     # Create indices:
     db.title_ratings.create_index("tconst", unique = True)
+    db.title_basics.create_index([("primaryTitle", "text"), ("startYear", "text")])
     
     print("Done")
 
