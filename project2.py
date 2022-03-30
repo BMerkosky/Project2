@@ -182,8 +182,12 @@ def addMovie(titleBasics):
     title = input("Provide a movie title to add: ")
     
     start_year = input("Enter movie start year: ")
-
-    mov_time = input("Enter movie runtime in minutes: ")
+    
+    try:
+        mov_time = int(input("Enter movie runtime in minutes: "))
+    except:
+        print("Aborting... runtime must be an integer")
+        return
 
     genre_list = []
 
