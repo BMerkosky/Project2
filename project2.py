@@ -90,10 +90,7 @@ def connect():
     return db
 
 def titleSearch(nameBasics, titleBasics, titlePrincipals, titleRatings):
-    # Created a Text Index on title_basics as:
-    # db.title_basics.createIndex({"primaryTitle": "text", "startYear": "text"})
-    # this searches for all KEYWORDS related to input!
-    # TODO: Do we need to keep this index?
+    # Search for movies
     validAnswer = False
     while not validAnswer:
 
