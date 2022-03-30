@@ -1,7 +1,7 @@
 import pymongo
 import re
 import time
-#TODO: Check that using different ports also works with the lab machines
+
 def main():
     db = connect()
     # Now we create the collections
@@ -173,7 +173,6 @@ def title_search(nameBasics, titleBasics, titleRatings):
             validAnswer = True
 
 def addMovie(titleBasics):
-    #TODO: Error checking for this one
     validAnswer = False
     while not validAnswer:
         # need unique tconst, checking if user input tconst already exists in titleBasics
@@ -186,10 +185,14 @@ def addMovie(titleBasics):
 
 
     title = input("Provide a movie title to add: ")
-    
+
     start_year = input("Enter movie start year: ")
 
-    mov_time = input("Enter movie runtime in minutes: ")
+    try:
+        mov_time = int(input("Enter movie runtime in minutes: "))
+    except:
+        print("Aborting... runtime must be an integer")
+        return
 
     genre_list = []
 
@@ -210,6 +213,16 @@ def addMovie(titleBasics):
         })
 
     print("Movie added.")
+
+    # # NOTE: get rid of this (just for testing)
+    # res = titleBasics.aggregate([
+    #     {"$match": { 
+    #         "primaryTitle": "new test"
+    #         }}
+    #     ])
+
+    # for r in res:
+    #     print(r)
 
 def addMoviePeople(nameBasics, titleBasics, titlePrincipals):
     # Adds a cast/crew member to the title_principals collection
