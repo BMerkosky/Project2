@@ -1,7 +1,8 @@
 import pymongo
 import re
 import time
-#TODO: Do we want to add arguments to all of our functions?
+#TODO: Do we want to add arguments to all of our functions? 
+# why not
 def main():
     db = connect()
     # Now we create the collections
@@ -257,16 +258,22 @@ def addMoviePeople(nameBasics, titleBasics, titlePrincipals):
     print("Cast/crew member added")
 
 def searchPeople(nameBasics):
+    name = input("Provide a cast or crew member: ")
 
-    # name = input("Provide a cast or crew member: ")
-    # print()
-    name = "Michael Jordan"  # for testing
+    # check if the member exists
+    count = nameBasics.count_documents( { 
+        "primaryName": { 
+            "$regex": "^"+name+"$", 
+            "$options": "i" 
+        } 
+    } )
 
-    # # TIMING QUERY
-    # start_time = time.time()
-
+    if count == 0:
+        print("No members found")
+        return
+    
     res = nameBasics.aggregate( [ 
-        { "$match": { "primaryName": re.compile(name, re.IGNORECASE) } },
+        { "$match": { "primaryName": {"$regex": "^"+name+"$", "$options": "i"} } },
         {
             "$lookup": {
                 "from": "title_principals",
@@ -280,23 +287,19 @@ def searchPeople(nameBasics):
                 "from": "title_basics",
                 "localField": "movies.tconst",
                 "foreignField": "tconst",
-                "pipeline": [ {
-                        "$project": {
-                            "primaryTitle": 1,
-                            "_id": 0
-                        }
-                    } ],
                 "as": "ptitle"
             }
         },        
     ] )
-    
+
+    # printing output    
     for r in res:
+        print('-'*26)
         print(r["primaryName"], end=' ')
         print('('+r["nconst"]+')')
         print("Professions:", ', '.join(r["primaryProfession"]))
         
-        # print movie and jobs/characters if they had an appearance in the movie
+        # print movie and jobs/characters only if they had an appearance in the movie
         for i in range(len(r["movies"])):
             if r["movies"][i]["job"] != '\\N' or ''.join(r["movies"][i]["characters"]) != '\\N':
                 print(r["ptitle"][i]["primaryTitle"])
@@ -304,36 +307,25 @@ def searchPeople(nameBasics):
                     print("- Job:", r["movies"][i]["job"])
                 elif ''.join(r["movies"][i]["characters"]) != '\\N':
                     print("- Characters:", ', '.join(r["movies"][i]["characters"]))
-            # print()
-            # else:
-            #     print("No movie appearances")
-            # print()
-            # print(r)
-            # print()
-        print("="*30)
-    
+
 def searchGenres(titleBasics):
-    # genre = input("Search for genre: ")
-    # vcnt = input("Mininum vote count: ")
+    genre = input("Search for genre: ")
+    vcnt = int(input("Mininum vote count: "))
 
-    # for easy testing
-    genre = "Drama"
-    vcnt = 200000
+    # check if the genre exists
+    count = titleBasics.count_documents( { 
+        "genres": { 
+            "$regex": "^"+genre+"$", 
+            "$options": "i" 
+        } 
+    } )
 
-    # NOTE: this isn't "instant" like in the rubric :(
-    # but idk how to make it even faster
-    
-    # db.title_basics.create_index([("genres", pymongo.TEXT)])
-
-    # res = db.title_basics.find( { "$text": { "$search": genre } } ).limit(3)
-
-    # db.title_ratings.create_index("numVotes", pymongo.DESCENDING)
-    # res.sort("numVotes", -1)
-
+    if count == 0:
+        print("Nothing found")
+        return
 
     res = titleBasics.aggregate( [
         { "$match": { "genres": re.compile(genre, re.IGNORECASE) } },
-        # { "$match": { "$text": { "$search": genre } } },
         {
             "$lookup": {
                 "from": "title_ratings",
@@ -343,14 +335,16 @@ def searchGenres(titleBasics):
             } 
         },
         { "$unwind": "$votes" },
-        # { "$sort": { "votes.numVotes": -1 } },
         { "$match": { "votes.numVotes": { "$gte": vcnt } } },
-        # { "$sort": { "votes.numVotes": -1 } },
-        { "$limit": 20 }  # NOTE: get rid of this later
+        { "$sort": { "votes.numVotes": -1 } }
     ] )
 
-    for r in res:
-        print(r["primaryTitle"])
+    # printing output
+    print('-'*50)
+    print("{m:40} | Votes".format(m="Movies"))
+    print('-'*50)
+    for r in res:        
+        print("{m:40} | {v}".format(m=r["primaryTitle"], v=r["votes"]["numVotes"]))
 
 if __name__=='__main__':
     main()
