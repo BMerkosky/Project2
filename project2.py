@@ -1,8 +1,7 @@
 import pymongo
 import re
 import time
-#TODO: Do we want to add arguments to all of our functions? 
-# why not
+#TODO: Check that using different ports also works with the lab machines
 def main():
     db = connect()
     # Now we create the collections
@@ -87,7 +86,7 @@ def connect():
     print("Connection successful")
 
     # Create or open the database on server
-    db = client['291']
+    db = client['291db']
     return db
 
 def title_search(nameBasics, titleBasics, titleRatings):

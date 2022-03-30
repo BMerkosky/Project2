@@ -23,7 +23,7 @@ def main():
     print("Connection successful")
 
     # Create or open the database on server
-    db = client['291']
+    db = client['291db']
     collections = ["name_basics", "title_basics", "title_principals", "title_ratings"]
     for collection in collections:
         if collection in db.list_collection_names():
