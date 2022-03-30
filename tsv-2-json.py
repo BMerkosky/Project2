@@ -42,7 +42,7 @@ def convertJson(fileName, listAttributes, intAttributes):
 
 def main():
     listAttributes = {'primaryProfession','knownForTitles','genres'} # Characters are stored differently for some reason
-    intAttributes = {'birthYear','deathYear','isAdult','startYear','runtimeMinutes','ordering','numVotes','avgRating'}
+    intAttributes = {'birthYear','deathYear','isAdult','runtimeMinutes','ordering','numVotes','avgRating'} # We don't add startYear so that we can use a text index on title.basics
     listOfFiles = ['name.basics', 'title.basics','title.principals','title.ratings']
     for file in listOfFiles:
         convertJson(file, listAttributes, intAttributes)

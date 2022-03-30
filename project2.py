@@ -97,10 +97,11 @@ def titleSearch(nameBasics, titleBasics, titlePrincipals, titleRatings):
     validAnswer = False
     while not validAnswer:
 
-        keyword = input("\nEnter one or more keywords to search for, separated by a space: ").lower()
-        count = titleBasics.count_documents({ "$text": { "$search": keyword }}) # count to see if something exists
+        keywords = input("\nEnter one or more keywords to search for, separated by a space: ")
+        searchText = '"' +'" "'.join(keywords.split(" ")) + '"' 
+        count = titleBasics.count_documents({ "$text": { "$search": searchText}}) # count to see if something exists
 
-        cursor = titleBasics.find( { "$text": { "$search": keyword}})
+        cursor = titleBasics.find( { "$text": { "$search": searchText}})
         if count > 0:
             validAnswer = True
         else:
@@ -112,14 +113,23 @@ def titleSearch(nameBasics, titleBasics, titlePrincipals, titleRatings):
     for documents in cursor:
         
         ids.append(documents["tconst"])
-        print(i, end = '|')
+        print(i, end = '| ')
         for item in documents:
-
-            print("{}: ".format(item) + str(documents[item]), end = ', ')
+            if item == "genres":
+                # Print the genres (but not as a list)
+                print("genres: ", end = '')
+                for genre in documents[item]:
+                    # Print each genre
+                    if genre != documents[item][-1]:
+                        print(genre, end = ', ')
+                    else:
+                        print(genre)
+            else:
+                print("{}: ".format(item) + str(documents[item]), end = ', ')
         i += 1
         print("")
 
-    print("\n0| Exit to menu")
+    print("0| Exit to menu")
     validAnswer = False
     while not validAnswer:
         choice = input(("Select an to view the information of its corresponding movie: "))
@@ -155,8 +165,9 @@ def titleSearch(nameBasics, titleBasics, titlePrincipals, titleRatings):
     ] )
     for r in res:
         # There should only be one row
-        print("Average rating:", r["averageRating"])
+        print("\nAverage rating:", r["averageRating"])
         print("Number of votes:", r["numVotes"])
+        print("\n")
         for member in range(len(r["principalsRow"])):
             # We should also be able to use r["namesRow"] if we wanted
             print("Name: ", r["namesRow"][member]["primaryName"])
